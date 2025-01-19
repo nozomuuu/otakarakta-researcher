@@ -1,36 +1,68 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from "react";
 
 const TakePhoto = () => {
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const [photo, setPhoto] = useState(null);
 
+  // カメラを起動
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { exact: "environment" }, // アウトカメラを使用
+          width: { ideal: 1080 },
+          height: { ideal: 1080 }
+        }
+      });
       videoRef.current.srcObject = stream;
-    } catch (err) {
-      console.error('Error accessing camera:', err);
+      videoRef.current.play();
+    } catch (error) {
+      console.error("カメラの起動に失敗しました:", error);
     }
   };
 
+  // 撮影ボタンの動作
   const takePhoto = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    setPhoto(canvas.toDataURL('image/png'));
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const context = canvas.getContext("2d");
+
+    // Canvasサイズをビデオのサイズに合わせる
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Canvasにビデオの現在のフレームを描画
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // キャプチャ画像を取得
+    const imageData = canvas.toDataURL("image/png");
+    setPhoto(imageData);
   };
 
   return (
     <div>
-      <h2>写真を撮影</h2>
+      <h1>写真を撮影</h1>
+      <video
+        ref={videoRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          maxWidth: "1080px",
+          maxHeight: "1080px",
+          borderRadius: "12px"
+        }}
+      ></video>
       <button onClick={startCamera}>カメラを開始</button>
-      <div>
-        <video ref={videoRef} autoPlay playsInline />
-      </div>
       <button onClick={takePhoto}>撮影</button>
-      {photo && <img src={photo} alt="Captured" />}
+      <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
+      {photo && (
+        <div>
+          <h2>撮影結果</h2>
+          <img src={photo} alt="撮影された画像" style={{ maxWidth: "100%" }} />
+        </div>
+      )}
     </div>
   );
 };
