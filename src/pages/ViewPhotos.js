@@ -15,7 +15,7 @@ const ViewPhotos = () => {
       <div>
         {photos.length > 0 ? (
           photos.map((photo, index) => (
-            <img key={index} src={photo} alt={`Photo ${index + 1}`} />
+            <img key={index} src={photo} alt={`撮影した写真 ${index + 1}`} />
           ))
         ) : (
           <p>撮影した写真をここに表示します。</p>
