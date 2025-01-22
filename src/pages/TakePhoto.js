@@ -12,7 +12,7 @@ const TakePhoto = () => {
         video: { facingMode: "environment", aspectRatio: 1 },
       });
       videoRef.current.srcObject = stream;
-      videoRef.current.play();
+      await videoRef.current.play(); // カメラのプレビューを開始
       setCameraActive(true);
     } catch (error) {
       console.error("カメラの起動に失敗しました:", error);
@@ -20,8 +20,9 @@ const TakePhoto = () => {
   };
 
   const takePhoto = () => {
+    if (!canvasRef.current || !videoRef.current) return;
     const context = canvasRef.current.getContext("2d");
-    context.drawImage(videoRef.current, 0, 0, 300, 300); // スクエアの画像にする
+    context.drawImage(videoRef.current, 0, 0, 300, 300); // スクエア画像
     const imageData = canvasRef.current.toDataURL("image/png");
     setPhoto(imageData);
   };
@@ -40,7 +41,7 @@ const TakePhoto = () => {
           width: "300px",
           height: "300px",
           margin: "0 auto",
-          border: "2px solid #000",
+          border: "2px solid black",
         }}
       >
         {cameraActive && (
@@ -59,10 +60,10 @@ const TakePhoto = () => {
                 position: "absolute",
                 top: "50%",
                 left: "50%",
+                transform: "translate(-50%, -50%)",
                 width: "50px",
                 height: "50px",
                 border: "2px solid red",
-                transform: "translate(-50%, -50%)",
                 borderRadius: "50%",
               }}
             ></div>
@@ -72,7 +73,11 @@ const TakePhoto = () => {
       {cameraActive && (
         <button
           onClick={takePhoto}
-          style={{ marginTop: "20px", display: "block", margin: "0 auto" }}
+          style={{
+            marginTop: "20px",
+            padding: "10px 20px",
+            fontSize: "16px",
+          }}
         >
           撮影
         </button>
