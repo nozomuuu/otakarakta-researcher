@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const ViewPhotos = () => {
-  const [photo, setPhoto] = useState(null);
+  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
-    const savedPhoto = localStorage.getItem('photo');
-    if (savedPhoto) {
-      setPhoto(savedPhoto);
-    }
+    const storedPhotos = JSON.parse(localStorage.getItem('photos')) || [];
+    setPhotos(storedPhotos);
   }, []);
 
   return (
     <div>
       <h1>アルバム</h1>
-      {photo ? (
-        <img src={photo} alt="Saved" style={{ width: '300px', height: '300px' }} />
-      ) : (
-        <p>ここに撮影した写真を表示します。</p>
-      )}
+      <div>
+        {photos.map((photo, index) => (
+          <img key={index} src={photo} alt={`撮影した写真${index + 1}`} width="300" />
+        ))}
+      </div>
     </div>
   );
 };
