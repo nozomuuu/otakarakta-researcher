@@ -1,119 +1,67 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useState, useEffect } from 'react';
 
 const TakePhoto = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [photo, setPhoto] = useState(null);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  let stream = null; // カメラストリームの定義
 
   useEffect(() => {
-    if (cameraActive) {
-      startCamera();
-    }
-    // クリーンアップ処理: コンポーネントがアンマウントされたときにカメラを停止
+    const getCameraStream = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+      }
+    };
+
+    getCameraStream();
+
+    // クリーンアップ処理
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
+      if (stream) {
+        const tracks = stream.getTracks();
         tracks.forEach((track) => track.stop());
       }
     };
-  }, [cameraActive]);
-
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", aspectRatio: 1 },
-      });
-      videoRef.current.srcObject = stream;
-      await videoRef.current.play(); // カメラプレビューを開始
-    } catch (error) {
-      setErrorMessage("カメラの起動に失敗しました。ブラウザの設定を確認してください。");
-      console.error("カメラの起動エラー:", error);
-    }
-  };
+  }, []); // 依存関係は空で適切に管理
 
   const takePhoto = () => {
     if (!canvasRef.current || !videoRef.current) return;
-    const context = canvasRef.current.getContext("2d");
-    context.drawImage(videoRef.current, 0, 0, 300, 300); // スクエア画像を生成
-    const imageData = canvasRef.current.toDataURL("image/png");
+
+    const context = canvasRef.current.getContext('2d');
+    context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    // 撮影した画像をデータURL形式で取得
+    const imageData = canvasRef.current.toDataURL('image/png');
     setPhoto(imageData);
+
+    // ローカルストレージに保存
+    localStorage.setItem('photo', imageData);
   };
 
   return (
-    <div style={{ textAlign: "center" }}>
+    <div>
       <h1>写真を撮影</h1>
-      {!cameraActive && (
-        <button
-          onClick={() => setCameraActive(true)}
-          style={{ marginBottom: "20px" }}
-        >
-          カメラを開始
-        </button>
-      )}
-      <div
+      <video
+        ref={videoRef}
         style={{
-          position: "relative",
-          width: "300px",
-          height: "300px",
-          margin: "0 auto",
-          border: "2px solid black",
+          display: 'block',
+          width: '300px',
+          height: '300px',
+          border: '1px solid black',
         }}
-      >
-        {cameraActive && (
-          <>
-            <video
-              ref={videoRef}
-              style={{
-                width: "300px",
-                height: "300px",
-                objectFit: "cover",
-              }}
-            />
-            {/* ターゲットマーク */}
-            <div
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "50px",
-                height: "50px",
-                border: "2px solid red",
-                borderRadius: "50%",
-              }}
-            ></div>
-          </>
-        )}
-      </div>
-      {cameraActive && (
-        <button
-          onClick={takePhoto}
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            fontSize: "16px",
-          }}
-        >
-          撮影
-        </button>
-      )}
+      />
       <canvas
         ref={canvasRef}
-        style={{ display: "none" }}
+        style={{ display: 'none' }}
         width={300}
         height={300}
       ></canvas>
-      {photo && (
-        <div>
-          <h2>撮影結果</h2>
-          <img src={photo} alt="撮影した写真" style={{ width: "300px" }} />
-        </div>
-      )}
-      {errorMessage && (
-        <div style={{ color: "red", marginTop: "20px" }}>{errorMessage}</div>
-      )}
+      <button onClick={takePhoto}>撮影</button>
+      {photo && <img src={photo} alt="Captured" />}
     </div>
   );
 };
