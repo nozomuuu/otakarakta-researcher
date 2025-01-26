@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/otakarakta-researcher/static/css/main.05914835.css",
+    "main.js": "/otakarakta-researcher/static/js/main.e0a8e3c1.js",
+    "index.html": "/otakarakta-researcher/index.html",
+    "main.05914835.css.map": "/otakarakta-researcher/static/css/main.05914835.css.map",
+    "main.e0a8e3c1.js.map": "/otakarakta-researcher/static/js/main.e0a8e3c1.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.05914835.css",
+    "static/js/main.e0a8e3c1.js"
+  ]
+}
