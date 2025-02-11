@@ -31,37 +31,39 @@ const Report = () => {
           await new Promise((resolve) => setTimeout(resolve, 1000))
         }
 
+        // IndexedDBから写真を読み込む
         const savedPhotos = await photoStorage.load()
         console.log("Loaded photos:", savedPhotos)
+
+        if (!mounted.current) return
 
         if (!savedPhotos || savedPhotos.length === 0) {
           throw new Error("写真が見つかりません")
         }
 
-        if (mounted.current) {
-          setPhotos(savedPhotos)
-          setError(null)
-          setTimeout(() => {
-            if (mounted.current) {
-              setIsTransitioning(false)
-            }
-          }, 100)
-        }
+        setPhotos(savedPhotos)
+        setError(null)
+        setIsLoading(false)
+
+        setTimeout(() => {
+          if (mounted.current) {
+            setIsTransitioning(false)
+          }
+        }, 100)
       } catch (err) {
         console.error("Error loading photos:", err)
         if (mounted.current) {
           setError(err.message)
-          setIsTransitioning(false)
-        }
-      } finally {
-        if (mounted.current) {
           setIsLoading(false)
+          setIsTransitioning(false)
         }
       }
     }
 
+    // 即時実行
     loadPhotos()
 
+    // クリーンアップ関数
     return () => {
       mounted.current = false
     }
@@ -113,18 +115,24 @@ const Report = () => {
 
       const result = await sharePhoto.upload(photos[bestShotIndex].data)
 
-      if (result.success) {
-        setShareCode(result.shareCode)
-        setShowShareDialog(true)
-        console.log("Share successful, URL:", result.url) // デバッグ用
-      } else {
-        throw new Error(result.error || "写真の共有に失敗しました")
+      if (mounted.current) {
+        if (result.success) {
+          setShareCode(result.shareCode)
+          setShowShareDialog(true)
+          console.log("Share successful, URL:", result.url)
+        } else {
+          throw new Error(result.error || "写真の共有に失敗しました")
+        }
       }
     } catch (error) {
       console.error("Share failed:", error)
-      setShareError(error.message)
+      if (mounted.current) {
+        setShareError(error.message)
+      }
     } finally {
-      setIsSharing(false)
+      if (mounted.current) {
+        setIsSharing(false)
+      }
       // 進捗表示を削除
       const progressDiv = document.querySelector(".share-progress")
       if (progressDiv) {
