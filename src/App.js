@@ -52,7 +52,7 @@ const getFirebaseConfig = () => {
   })
 }
 
-// デバッグ情報を収集する関数を追加
+// デバッグ情報を収集する関数
 const collectDebugInfo = () => {
   return {
     timestamp: new Date().toISOString(),
@@ -108,19 +108,9 @@ function App() {
         console.log("Debug info:", debugInfo)
 
         setInitialized(true)
-        setDebugInfo((prevInfo) => ({
-          ...prevInfo,
-          firebaseStatus: "initialized",
-          timestamp: new Date().toISOString(),
-        }))
       } catch (err) {
         console.error("Firebase initialization error:", err)
         setError(err.message)
-        setDebugInfo((prevInfo) => ({
-          ...prevInfo,
-          error: err.message,
-          errorTimestamp: new Date().toISOString(),
-        }))
 
         // エラー時のデバッグ情報を設定
         const errorDebugInfo = collectDebugInfo()

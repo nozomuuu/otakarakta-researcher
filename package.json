@@ -19,9 +19,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "vercel-build": "npm install --legacy-peer-deps && npm run build",
-    "logs": "vercel logs $(vercel ls -l 1 --json | jq -r '.[0].url')",
-    "get-latest-deployment": "vercel ls -l 1 --json | jq -r '.[0].url'",
-    "view-logs": "vercel logs"
+    "get-latest-deployment": "vercel ls --limit 1 --json | jq -r '.[0].url' || echo 'Failed to get latest deployment'",
+    "view-logs": "npm run get-latest-deployment | xargs -I {} vercel logs {} || echo 'Failed to view logs'",
+    "deploy-and-logs": "vercel --prod && npm run view-logs"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
