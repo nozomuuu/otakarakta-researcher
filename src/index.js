@@ -1,69 +1,78 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
-import { BrowserRouter } from "react-router-dom"
-import "./index.css"
 import App from "./App"
 
-// エラーハンドリングの追加
-const handleError = (error) => {
-  console.error("Application Error:", error)
-  // エラー画面を表示
-  document.body.innerHTML = `
-    <div style="
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #0f380f;
-      color: #9bbc0f;
-      font-family: 'Press Start 2P', cursive;
-      text-align: center;
-      padding: 20px;
-    ">
-      <div>
-        <h1>エラーが発生しました</h1>
-        <p>${error.message}</p>
-        <button onclick="window.location.reload()" style="
-          background: none;
-          border: 2px solid #9bbc0f;
-          color: #9bbc0f;
-          padding: 10px 20px;
-          margin-top: 20px;
-          font-family: 'Press Start 2P', cursive;
-          cursor: pointer;
-        ">
-          再読み込み
-        </button>
-      </div>
-    </div>
-  `
+const container = document.getElementById("root")
+const root = createRoot(container)
+
+// エラーバウンダリー
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Application error:", error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#1b5e20",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            color: "white",
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(0,0,0,0.7)",
+              padding: "2rem",
+              borderRadius: "12px",
+              textAlign: "center",
+            }}
+          >
+            <div>エラーが発生しました</div>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                marginTop: "1rem",
+                padding: "0.5rem 1rem",
+                backgroundColor: "#8bc34a",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              再読み込み
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
 }
 
-// アプリケーションの初期化を try-catch で囲む
-try {
-  const container = document.getElementById("root")
-  if (!container) throw new Error("Root element not found")
-
-  const root = createRoot(container)
-
-  root.render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </React.StrictMode>,
-  )
-
-  // 初期化完了をログに出力
-  console.log("Application initialized successfully")
-} catch (error) {
-  handleError(error)
-}
-
-// グローバルエラーハンドリング
-window.onerror = (message, source, lineno, colno, error) => {
-  console.error("Global error:", { message, source, lineno, colno, error })
-  handleError(error || new Error(message))
-  return true
-}
+root.render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  </React.StrictMode>,
+)
 

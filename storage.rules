@@ -1,14 +1,12 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /shared/{allPaths=**} {
+    match /photos/{photoId} {
       // 読み取りは誰でも可能
       allow read: if true;
 
       // アップロードの条件
-      allow write: if 
-        // 2025年末までの有効期限
-        request.time < timestamp.date(2025, 12, 31) &&
+      allow create: if 
         // 5MB以下のファイルのみ許可
         request.resource.size <= 5 * 1024 * 1024 &&
         // 画像ファイルのみ許可
@@ -17,11 +15,10 @@ service firebase.storage {
         request.resource.metadata != null &&
         // shareCodeの存在確認
         request.resource.metadata.shareCode != null;
-    }
 
-    // その他のパスへのアクセスを制限
-    match /{allPaths=**} {
-      allow read, write: if false;
+      // 更新と削除は禁止
+      allow update, delete: if false;
     }
   }
 }
+

@@ -1,59 +1,75 @@
 "use client"
 
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { sharePhoto } from "../utils/sharePhoto"
-import "./SharedPhoto.css"
+import { useState, useEffect } from "react"
+import { useParams } from "react-router-dom"
+import { getStorage, ref, getDownloadURL } from "firebase/storage"
+import { initializeApp } from "firebase/app"
+import { firebaseConfig } from "../firebaseConfig"
 
-export default function SharedPhoto() {
-  const [code, setCode] = useState("")
-  const [photo, setPhoto] = useState(null)
+// Firebase初期化
+const app = initializeApp(firebaseConfig)
+const storage = getStorage(app)
+
+const SharedPhoto = () => {
+  const { shareCode } = useParams()
+  const [photoUrl, setPhotoUrl] = useState(null)
   const [error, setError] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(true)
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!code || code.length !== 6) return
+  useEffect(() => {
+    const loadSharedPhoto = async () => {
+      try {
+        if (!shareCode) {
+          throw new Error("共有コードが見つかりません")
+        }
 
-    try {
-      setIsLoading(true)
-      setError(null)
+        // パスを /shared/ に修正
+        const photoRef = ref(storage, `shared/${shareCode}.jpg`)
 
-      const result = await sharePhoto.download(code)
+        // ダウンロードURLを取得
+        const url = await getDownloadURL(photoRef)
+        console.log("Photo URL:", url)
 
-      if (result.success) {
-        setPhoto(result.url)
-      } else {
-        throw new Error(result.error || "しゃしんの取得に失敗しました")
+        setPhotoUrl(url)
+        setError(null)
+      } catch (err) {
+        console.error("Error loading shared photo:", err)
+        setError("写真の読み込みに失敗しました")
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error("Download failed:", error)
-      setError(error.message)
-    } finally {
-      setIsLoading(false)
     }
+
+    loadSharedPhoto()
+  }, [shareCode])
+
+  // 以下のレンダリング部分は変更なし
+  if (isLoading) {
+    return (
+      <div className="shared-photo-container">
+        <div className="game-window">
+          <div className="screen-container">
+            <div className="message-box">よみこんでいます...</div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  const handlePrint = () => {
-    if (!photo) return
-    const printWindow = window.open("", "_blank")
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Print Photo</title>
-          <style>
-            body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-            img { max-width: 100%; max-height: 100vh; object-fit: contain; }
-          </style>
-        </head>
-        <body>
-          <img src="${photo}" alt="Shared photo" />
-        </body>
-      </html>
-    `)
-    printWindow.document.close()
-    printWindow.print()
+  if (error) {
+    return (
+      <div className="shared-photo-container">
+        <div className="game-window">
+          <div className="screen-container">
+            <div className="message-box">
+              {error}
+              <br />
+              <small>共有コード: {shareCode}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -61,45 +77,16 @@ export default function SharedPhoto() {
       <div className="game-window">
         <div className="screen-container">
           <div className="content-area">
-            <h2>きょうゆうされた しゃしん</h2>
-
-            {!photo ? (
-              <form onSubmit={handleSubmit} className="code-form">
-                <input
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="きょうゆうコードを にゅうりょく"
-                  maxLength={6}
-                  className="code-input"
-                />
-                <button type="submit" className="action-button" disabled={isLoading || code.length !== 6}>
-                  {isLoading ? "よみこみちゅう..." : "けんさく"}
-                </button>
-              </form>
-            ) : (
-              <div className="photo-display">
-                <img src={photo || "/placeholder.svg"} alt="Shared photo" className="shared-image" />
-                <div className="button-container">
-                  <button onClick={handlePrint} className="action-button">
-                    プリントする
-                  </button>
-                  <button onClick={() => setPhoto(null)} className="action-button">
-                    べつのしゃしんをさがす
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {error && <div className="error-message">{error}</div>}
-
-            <button onClick={() => navigate("/")} className="action-button">
-              ホームにもどる
-            </button>
+            <div className="message-box">共有された写真</div>
+            <div className="photo-display-area">
+              <img src={photoUrl || "/placeholder.svg"} alt="共有された写真" className="shared-photo" />
+            </div>
           </div>
         </div>
       </div>
     </div>
   )
 }
+
+export default SharedPhoto
 

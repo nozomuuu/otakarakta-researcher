@@ -2,19 +2,48 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f380f" />
-    <meta name="description" content="オタカラクタ リサーチャー" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>オタカラクタ リサーチャー</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#4CAF50" />
+    <meta name="description" content="おたからクタ研究員" />
+    <title>おたからクタ研究員</title>
+    <script>
+      // グローバルエラーハンドリング
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.error('グローバルエラー:', {
+          message: message,
+          source: source,
+          lineno: lineno,
+          colno: colno,
+          error: error,
+          timestamp: new Date().toISOString()
+        });
+
+        // 環境変数の状態をログに出力
+        console.log('環境変数の状態:', {
+          NODE_ENV: process.env.NODE_ENV,
+          REACT_APP_FIREBASE_API_KEY: process.env.REACT_APP_FIREBASE_API_KEY ? '設定済み' : '未設定',
+          REACT_APP_FIREBASE_AUTH_DOMAIN: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN ? '設定済み' : '未設定',
+          REACT_APP_FIREBASE_PROJECT_ID: process.env.REACT_APP_FIREBASE_PROJECT_ID ? '設定済み' : '未設定'
+        });
+
+        return false;
+      };
+
+      // パフォーマンス監視
+      window.addEventListener('load', function() {
+        if (window.performance && window.performance.getEntriesByType) {
+          const timing = performance.getEntriesByType('navigation')[0];
+          console.log('ページロードパフォーマンス:', {
+            loadTime: timing.loadEventEnd - timing.navigationStart,
+            domReady: timing.domContentLoadedEventEnd - timing.navigationStart,
+            timestamp: new Date().toISOString()
+          });
+        }
+      });
+    </script>
   </head>
   <body>
-    <noscript>このアプリを実行するに��JavaScriptを有効にする必要があります。</noscript>
+    <noscript>JavaScriptを有効にしてください。</noscript>
     <div id="root"></div>
   </body>
 </html>

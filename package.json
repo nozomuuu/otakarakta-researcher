@@ -3,53 +3,31 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "ajv": "^8.12.0",
-    "ajv-keywords": "^5.1.0",
     "firebase": "^11.3.0",
-    "lz-string": "^1.5.0",
-    "nanoid": "^5.0.9",
-    "qrcode": "^1.5.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
-    "react-scripts": "5.0.1",
-    "schema-utils": "^4.2.0"
+    "react-scripts": "5.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.9",
-    "@babel/plugin-transform-private-property-in-object": "^7.23.4",
-    "@babel/preset-react": "^7.23.3",
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
-    "@testing-library/user-event": "^14.5.2",
-    "@types/react": "^18.2.55",
-    "@types/react-dom": "^18.2.19",
-    "webpack": "^5.90.1"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-private-property-in-object": "^7.23.4"
   },
   "scripts": {
-    "dev": "react-scripts start",
     "start": "react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "CI=false GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "vercel-build": "npm install --legacy-peer-deps && npm run build",
+    "logs": "vercel logs $(vercel ls --limit 1 | awk 'NR==2 {print $2}')"
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
   },
-  "resolutions": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "ajv": "^8.12.0",
-    "ajv-keywords": "^5.1.0",
-    "schema-utils": "^4.2.0"
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
+
