@@ -52,6 +52,22 @@ const getFirebaseConfig = () => {
   })
 }
 
+// デバッグ情報を収集する関数を追加
+const collectDebugInfo = () => {
+  return {
+    timestamp: new Date().toISOString(),
+    nodeEnv: process.env.NODE_ENV,
+    browserInfo: navigator.userAgent,
+    screenSize: `${window.innerWidth}x${window.innerHeight}`,
+    // Firebase設定の一部（機密情報は除く）
+    firebaseConfig: {
+      projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+      authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+      storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+    },
+  }
+}
+
 function App() {
   const [initialized, setInitialized] = useState(false)
   const [error, setError] = useState(null)
@@ -81,6 +97,16 @@ function App() {
         const storage = getStorage(app)
         console.log("Firebase initialized successfully")
 
+        // デバッグ情報を収集して設定
+        const debugInfo = collectDebugInfo()
+        setDebugInfo((prevInfo) => ({
+          ...prevInfo,
+          ...debugInfo,
+          firebaseStatus: "initialized",
+        }))
+
+        console.log("Debug info:", debugInfo)
+
         setInitialized(true)
         setDebugInfo((prevInfo) => ({
           ...prevInfo,
@@ -95,6 +121,17 @@ function App() {
           error: err.message,
           errorTimestamp: new Date().toISOString(),
         }))
+
+        // エラー時のデバッグ情報を設定
+        const errorDebugInfo = collectDebugInfo()
+        setDebugInfo((prevInfo) => ({
+          ...prevInfo,
+          ...errorDebugInfo,
+          error: err.message,
+          errorStack: err.stack,
+        }))
+
+        console.error("Error debug info:", errorDebugInfo)
 
         if (initAttempts < 3) {
           console.log(`Retrying initialization... (${initAttempts + 1}/3)`)

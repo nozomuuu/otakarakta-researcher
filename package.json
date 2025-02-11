@@ -19,7 +19,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "vercel-build": "npm install --legacy-peer-deps && npm run build",
-    "logs": "vercel logs $(vercel ls --limit 1 | awk 'NR==2 {print $2}')"
+    "logs": "vercel logs $(vercel ls --limit 1 --json | jq -r '.[0].url')"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
