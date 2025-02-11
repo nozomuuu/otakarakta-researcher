@@ -12,6 +12,24 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "storage": {
+    "rules": "storage.rules",
+    "cors": [{
+      "origin": [
+        "http://localhost:3000",
+        "https://otakarakta-researcher-5fen1ral8-nozomuuu-59948529.vercel.app",
+        "https://otakarakuta-researcher.vercel.app"
+      ],
+      "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+      "maxAgeSeconds": 3600,
+      "responseHeader": [
+        "Content-Type",
+        "Authorization",
+        "Content-Length",
+        "User-Agent",
+        "X-Requested-With"
+      ]
+    }]
   }
 }
-
