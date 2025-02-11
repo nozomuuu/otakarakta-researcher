@@ -44,10 +44,6 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "logs": {
-    "stdout": "info",
-    "stderr": "error"
-  }
+  ]
 }
 
