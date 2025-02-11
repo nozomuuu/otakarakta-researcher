@@ -25,3 +25,5 @@ yarn-error.log*
 # Local Netlify folder
 .netlify
 all-code-output.txt
+.vercel
+.env*.local

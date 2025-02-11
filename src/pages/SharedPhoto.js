@@ -1,125 +1,105 @@
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { nanoid } from "nanoid"
-import { storage } from "../firebase"
+"use client"
 
-export const sharePhoto = {
-  generateShareCode: () => {
-    return nanoid(6).toUpperCase()
-  },
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { sharePhoto } from "../utils/sharePhoto"
+import "./SharedPhoto.css"
 
-  async createImageBlob(imageData) {
+export default function SharedPhoto() {
+  const [code, setCode] = useState("")
+  const [photo, setPhoto] = useState(null)
+  const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!code || code.length !== 6) return
+
     try {
-      if (!imageData.startsWith("data:image/")) {
-        throw new Error("Invalid image data")
-      }
+      setIsLoading(true)
+      setError(null)
 
-      const base64Data = imageData.split(",")[1]
-      const byteCharacters = atob(base64Data)
-      const byteArrays = []
+      const result = await sharePhoto.download(code)
 
-      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice = byteCharacters.slice(offset, offset + 512)
-        const byteNumbers = new Array(slice.length)
-
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i)
-        }
-
-        const byteArray = new Uint8Array(byteNumbers)
-        byteArrays.push(byteArray)
-      }
-
-      return new Blob(byteArrays, { type: "image/jpeg" })
-    } catch (error) {
-      console.error("Error creating blob:", error)
-      throw new Error("画像データの変換に失敗しました")
-    }
-  },
-
-  async upload(imageData) {
-    try {
-      console.log("Starting upload process...")
-
-      const shareCode = this.generateShareCode()
-      console.log("Generated share code:", shareCode)
-
-      const imageBlob = await this.createImageBlob(imageData)
-      console.log("Created image blob:", imageBlob.type, imageBlob.size)
-
-      const storageRef = ref(storage, `shared/${shareCode}`)
-      console.log("Created storage reference:", storageRef.fullPath)
-
-      const metadata = {
-        contentType: "image/jpeg",
-        customMetadata: {
-          shareCode: shareCode,
-          uploadedAt: new Date().toISOString(),
-        },
-      }
-
-      console.log("Starting upload with metadata:", metadata)
-      const uploadResult = await uploadBytes(storageRef, imageBlob, metadata)
-      console.log("Upload completed:", uploadResult)
-
-      const downloadURL = await getDownloadURL(uploadResult.ref)
-      console.log("Generated download URL:", downloadURL)
-
-      return {
-        success: true,
-        shareCode,
-        url: downloadURL,
+      if (result.success) {
+        setPhoto(result.url)
+      } else {
+        throw new Error(result.error || "しゃしんの取得に失敗しました")
       }
     } catch (error) {
-      console.error("Upload error:", error)
-
-      let errorMessage = "しゃしんのアップロードに失敗しました"
-      if (error.code === "storage/unauthorized") {
-        errorMessage = "アップロード権限がありません"
-      } else if (error.code === "storage/canceled") {
-        errorMessage = "アップロードがキャンセルされました"
-      } else if (error.code === "storage/unknown") {
-        errorMessage = "予期せぬエラーが発生しました"
-      }
-
-      return {
-        success: false,
-        error: errorMessage,
-      }
+      console.error("Download failed:", error)
+      setError(error.message)
+    } finally {
+      setIsLoading(false)
     }
-  },
+  }
 
-  async download(shareCode) {
-    try {
-      console.log("Starting download for share code:", shareCode)
+  const handlePrint = () => {
+    if (!photo) return
+    const printWindow = window.open("", "_blank")
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print Photo</title>
+          <style>
+            body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+            img { max-width: 100%; max-height: 100vh; object-fit: contain; }
+          </style>
+        </head>
+        <body>
+          <img src="${photo}" alt="Shared photo" />
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.print()
+  }
 
-      const normalizedCode = shareCode.toUpperCase()
-      const storageRef = ref(storage, `shared/${normalizedCode}`)
-      console.log("Created storage reference:", storageRef.fullPath)
+  return (
+    <div className="shared-photo-container">
+      <div className="game-window">
+        <div className="screen-container">
+          <div className="content-area">
+            <h2>きょうゆうされた しゃしん</h2>
 
-      const url = await getDownloadURL(storageRef)
-      console.log("Generated download URL:", url)
+            {!photo ? (
+              <form onSubmit={handleSubmit} className="code-form">
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  placeholder="きょうゆうコードを にゅうりょく"
+                  maxLength={6}
+                  className="code-input"
+                />
+                <button type="submit" className="action-button" disabled={isLoading || code.length !== 6}>
+                  {isLoading ? "よみこみちゅう..." : "けんさく"}
+                </button>
+              </form>
+            ) : (
+              <div className="photo-display">
+                <img src={photo || "/placeholder.svg"} alt="Shared photo" className="shared-image" />
+                <div className="button-container">
+                  <button onClick={handlePrint} className="action-button">
+                    プリントする
+                  </button>
+                  <button onClick={() => setPhoto(null)} className="action-button">
+                    べつのしゃしんをさがす
+                  </button>
+                </div>
+              </div>
+            )}
 
-      return {
-        success: true,
-        url,
-      }
-    } catch (error) {
-      console.error("Download error:", error)
+            {error && <div className="error-message">{error}</div>}
 
-      let errorMessage = "しゃしんの取得に失敗しました"
-      if (error.code === "storage/object-not-found") {
-        errorMessage = "しゃしんが見つかりません"
-      } else if (error.code === "storage/unauthorized") {
-        errorMessage = "アクセス権限がありません"
-      } else if (error.code === "storage/canceled") {
-        errorMessage = "ダウンロードがキャンセルされました"
-      }
-
-      return {
-        success: false,
-        error: errorMessage,
-      }
-    }
-  },
+            <button onClick={() => navigate("/")} className="action-button">
+              ホームにもどる
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 

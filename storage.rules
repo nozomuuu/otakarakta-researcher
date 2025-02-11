@@ -1,11 +1,23 @@
 rules_version = '2';
+
 service firebase.storage {
   match /b/{bucket}/o {
-    match /shared/{shareCode} {
+    match /shared/{allPaths=**} {
+      // 読み取りは誰でも可能
       allow read: if true;
-      allow write: if request.resource.size < 5 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+
+      // アップロードは認証不要で許可（開発用）
+      allow write: if 
+        // 2025年末まで有効
+        request.time < timestamp.date(2025, 12, 31) &&
+        // 5MB以下のファイルのみ許可
+        request.resource.size < 5 * 1024 * 1024 &&
+        // 画像ファイルのみ許可
+        request.resource.contentType.matches('image/.*') &&
+        // メタデータの要求
+        request.resource.metadata != null &&
+        // shareCodeの存在確認
+        request.resource.metadata.shareCode != null;
     }
   }
 }
-

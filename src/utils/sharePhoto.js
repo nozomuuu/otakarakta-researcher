@@ -1,27 +1,22 @@
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { nanoid } from "nanoid"
-import { storage } from "../firebase"
+import { getStorageInstance, getFirebaseStatus } from "../firebase"
 
 export const sharePhoto = {
-  // 6文字の共有コードを生成
   generateShareCode: () => {
-    return nanoid(6)
+    return nanoid(6).toUpperCase()
   },
 
-  // 画像データをBlobに変換
   async createImageBlob(imageData) {
     try {
-      // Base64ヘッダーを確認
       if (!imageData.startsWith("data:image/")) {
         throw new Error("Invalid image data")
       }
 
-      // Base64データを抽出
       const base64Data = imageData.split(",")[1]
       const byteCharacters = atob(base64Data)
       const byteArrays = []
 
-      // バイトデータに変換
       for (let offset = 0; offset < byteCharacters.length; offset += 512) {
         const slice = byteCharacters.slice(offset, offset + 512)
         const byteNumbers = new Array(slice.length)
@@ -41,26 +36,50 @@ export const sharePhoto = {
     }
   },
 
-  // 画像をアップロードして共有コードを返す
   async upload(imageData) {
-    let uploadTask = null
-
     try {
       console.log("Starting upload process...")
 
-      // 共有コードを生成
+      // ファイルサイズのチェック
+      const base64Length = imageData.length - "data:image/jpeg;base64,".length
+      const sizeInBytes = base64Length * 0.75
+      const sizeInMB = sizeInBytes / (1024 * 1024)
+
+      if (sizeInMB > 5) {
+        throw new Error("画像サイズが大きすぎます（5MB以下にしてください）")
+      }
+
+      // Firebase初期化状態の確認
+      const status = await getFirebaseStatus()
+      if (!status.isInitialized) {
+        console.error("Firebase initialization status:", status)
+        throw new Error(status.error?.message || "Firebaseが正しく初期化されていません")
+      }
+
+      // Storageインスタンスの取得
+      const storage = await getStorageInstance()
+      console.log("Storage instance retrieved")
+
       const shareCode = this.generateShareCode()
       console.log("Generated share code:", shareCode)
 
-      // Blobを作成
       const imageBlob = await this.createImageBlob(imageData)
-      console.log("Created image blob:", imageBlob.type, imageBlob.size)
+      console.log("Created image blob:", {
+        type: imageBlob.type,
+        size: imageBlob.size,
+      })
 
-      // ストレージの参照を作成
-      const storageRef = ref(storage, `shared/${shareCode}`)
-      console.log("Created storage reference:", storageRef.fullPath)
+      // フルパスでの参照作成
+      const path = `shared/${shareCode}.jpg`
+      const storageRef = ref(storage, path)
 
-      // アップロードオプションを設定
+      console.log("Storage reference created:", {
+        bucket: storage.app.options.storageBucket,
+        path,
+        fullPath: storageRef.fullPath,
+      })
+
+      // メタデータ設定
       const metadata = {
         contentType: "image/jpeg",
         customMetadata: {
@@ -69,24 +88,14 @@ export const sharePhoto = {
         },
       }
 
-      // 画像をアップロード
+      // アップロード実行
       console.log("Starting upload with metadata:", metadata)
-      uploadTask = await uploadBytes(storageRef, imageBlob, metadata)
-      console.log("Upload completed:", uploadTask)
+      const uploadResult = await uploadBytes(storageRef, imageBlob, metadata)
+      console.log("Upload successful:", uploadResult)
 
-      // ダウンロードURLを取得
-      const downloadURL = await getDownloadURL(uploadTask.ref)
-      console.log("Generated download URL:", downloadURL)
-
-      // アップロードを検証
-      const verifyResponse = await fetch(downloadURL, {
-        method: "HEAD",
-        mode: "cors",
-      })
-
-      if (!verifyResponse.ok) {
-        throw new Error("アップロードの検証に失敗しました")
-      }
+      // ダウンロードURL取得
+      const downloadURL = await getDownloadURL(uploadResult.ref)
+      console.log("Download URL generated:", downloadURL)
 
       return {
         success: true,
@@ -94,69 +103,44 @@ export const sharePhoto = {
         url: downloadURL,
       }
     } catch (error) {
-      console.error("Upload error:", error)
-
-      // エラーの種類に応じてメッセージを設定
-      let errorMessage = "しゃしんのアップロードに失敗しました"
-      if (error.code === "storage/unauthorized") {
-        errorMessage = "アップロード権限がありません"
-      } else if (error.code === "storage/canceled") {
-        errorMessage = "アップロードがキャンセルされました"
-      } else if (error.code === "storage/unknown") {
-        errorMessage = "予期せぬエラーが発生しました"
-      }
+      console.error("Upload failed:", error)
 
       return {
         success: false,
-        error: errorMessage,
+        error: error.message || "しゃしんのアップロードに失敗しました",
       }
     }
   },
 
-  // 共有コードから画像を取得
   async download(shareCode) {
     try {
-      console.log("Starting download for share code:", shareCode)
+      // Firebase初期化状態の確認
+      const status = await getFirebaseStatus()
+      if (!status.isInitialized) {
+        throw new Error("Firebaseが正しく初期化されていません")
+      }
 
-      // ストレージの参照を作成
-      const storageRef = ref(storage, `shared/${shareCode}`)
-      console.log("Created storage reference:", storageRef.fullPath)
+      // Storageインスタンスの取得
+      const storage = await getStorageInstance()
 
-      // ダウンロードURLを取得
+      const normalizedCode = shareCode.toUpperCase()
+      const storageRef = ref(storage, `shared/${normalizedCode}.jpg`)
+
       const url = await getDownloadURL(storageRef)
-      console.log("Generated download URL:", url)
-
-      // URLの有効性を確認
-      const response = await fetch(url, {
-        method: "HEAD",
-        mode: "cors",
-      })
-
-      if (!response.ok) {
-        throw new Error("しゃしんが見つかりません")
-      }
-
-      // Content-Typeを確認
-      const contentType = response.headers.get("Content-Type")
-      if (!contentType || !contentType.startsWith("image/")) {
-        throw new Error("不正なファイル形式です")
-      }
+      console.log("Download URL retrieved:", url)
 
       return {
         success: true,
         url,
       }
     } catch (error) {
-      console.error("Download error:", error)
+      console.error("Download failed:", error)
 
-      // エラーの種類に応じてメッセージを設定
       let errorMessage = "しゃしんの取得に失敗しました"
       if (error.code === "storage/object-not-found") {
         errorMessage = "しゃしんが見つかりません"
       } else if (error.code === "storage/unauthorized") {
         errorMessage = "アクセス権限がありません"
-      } else if (error.code === "storage/canceled") {
-        errorMessage = "ダウンロードがキャンセルされました"
       }
 
       return {

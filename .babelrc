@@ -1,0 +1,14 @@
+{
+  "presets": [
+    "@babel/preset-react",
+    [
+      "react-app",
+      {
+        "absoluteRuntime": false
+      }
+    ]
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-private-property-in-object"
+  ]
+}

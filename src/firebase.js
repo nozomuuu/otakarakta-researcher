@@ -1,25 +1,77 @@
 import { initializeApp } from "firebase/app"
-import { getStorage } from "firebase/storage"
+import { getStorage as getFirebaseStorage, connectStorageEmulator } from "firebase/storage"
+import { firebaseConfig } from "./utils/firebase-config"
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+// Firebase初期化の状態管理
+let app = null
+let storage = null
+let initializationError = null
+
+const initializeFirebase = async () => {
+  try {
+    // 設定値の検証
+    if (!firebaseConfig.apiKey || !firebaseConfig.storageBucket) {
+      throw new Error(`Required Firebase configuration is missing:
+        apiKey: ${!!firebaseConfig.apiKey}
+        storageBucket: ${!!firebaseConfig.storageBucket}
+      `)
+    }
+
+    // Firebase初期化
+    app = initializeApp(firebaseConfig)
+    console.log("Firebase app initialized successfully with config:", {
+      projectId: firebaseConfig.projectId,
+      storageBucket: firebaseConfig.storageBucket,
+    })
+
+    // Storage初期化
+    storage = getFirebaseStorage(app)
+
+    // Storage初期化の検証
+    if (!storage || !storage.app || !storage.app.options.storageBucket) {
+      throw new Error(`Firebase Storage initialization failed:
+        storage: ${!!storage}
+        app: ${!!storage?.app}
+        bucket: ${storage?.app?.options?.storageBucket}
+      `)
+    }
+
+    // 開発環境の場合はエミュレーターに接続
+    if (process.env.NODE_ENV === "development") {
+      connectStorageEmulator(storage, "localhost", 9199)
+    }
+
+    console.log("Firebase Storage initialized successfully with bucket:", storage.app.options.storageBucket)
+
+    return { success: true }
+  } catch (error) {
+    console.error("Firebase initialization failed:", error)
+    initializationError = error
+    return { success: false, error }
+  }
 }
 
-let app
-let storage
+// 初期化実行
+const initializationPromise = initializeFirebase()
 
-try {
-  app = initializeApp(firebaseConfig)
-  storage = getStorage(app)
-  console.log("Firebase initialized successfully")
-  console.log("Storage bucket:", storage.app.options.storageBucket)
-} catch (error) {
-  console.error("Firebase initialization error:", error)
+// 初期化状態の確認関数
+export const getFirebaseStatus = async () => {
+  const initResult = await initializationPromise
+  return {
+    isInitialized: initResult.success,
+    error: initializationError,
+    storageBucket: storage?.app?.options?.storageBucket,
+    config: firebaseConfig,
+  }
+}
+
+// ストレージの取得関数
+export const getStorageInstance = async () => {
+  const status = await getFirebaseStatus()
+  if (!status.isInitialized) {
+    throw new Error("Firebase Storage is not initialized")
+  }
+  return storage
 }
 
 export { storage }
