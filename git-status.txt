@@ -1,0 +1,51 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .gitignore
+	modified:   package-lock.json
+	modified:   package.json
+	modified:   src/App.css
+	modified:   src/App.js
+	modified:   src/firebaseConfig.js
+	modified:   src/index.css
+	modified:   src/index.js
+	modified:   src/pages/Album.js
+	deleted:    src/pages/App.js
+	deleted:    src/pages/Encyclopedia.js
+	modified:   src/pages/TakePhoto.js
+	modified:   src/pages/ViewPhotos.js
+	deleted:    src/pages/Zukan.js
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	all-code-output.txt
+	git-status.txt
+	package-info.txt
+	project-structure.txt
+	public/button.mp3
+	public/images/
+	public/shutter.mp3
+	src/Layout.js
+	src/pages/About.js
+	src/pages/Button.css
+	src/pages/Button.js
+	src/pages/CameraUI.tsx
+	src/pages/Explore.css
+	src/pages/Explore.js
+	src/pages/Home.css
+	src/pages/Home.js
+	src/pages/List.css
+	src/pages/List.js
+	src/pages/Report.css
+	src/pages/Report.js
+	src/pages/Rules.css
+	src/pages/Rules.js
+	src/pages/TakePhoto.css
+	src/pages/ViewPhotos.css
+	src/pages/database.js
+	structure.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")

@@ -21,3 +21,4 @@ const CountdownTimer = ({ minutes }) => {
 };
 
 export default CountdownTimer;
+
