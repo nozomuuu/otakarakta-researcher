@@ -19,9 +19,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "vercel-build": "npm install --legacy-peer-deps && npm run build",
-    "get-latest-deployment": "vercel ls | sed -n '2p' | awk '{print $2}'",
-    "view-logs": "bash -c 'vercel logs $(npm run --silent get-latest-deployment)'",
-    "deploy-and-logs": "vercel --prod && sleep 5 && npm run view-logs"
+    "get-latest-deployment": "bash -c 'vercel ls --json | grep -m 1 \"url\" | cut -d\\\" -f4'",
+    "view-logs": "bash -c 'DEPLOYMENT_URL=$(npm run --silent get-latest-deployment) && if [ ! -z \"$DEPLOYMENT_URL\" ]; then vercel logs \"$DEPLOYMENT_URL\"; else echo \"Error: No deployment URL found\"; exit 1; fi'",
+    "deploy-and-logs": "vercel --prod && sleep 10 && npm run view-logs"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
@@ -32,3 +32,4 @@
     "npm": ">=9.0.0"
   }
 }
+
