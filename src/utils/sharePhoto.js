@@ -1,11 +1,8 @@
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { nanoid } from "nanoid"
-import { initializeApp } from "firebase/app"
-import { firebaseConfig } from "../firebaseConfig"
+import { firebase } from "./firebase-config"
 
-// Firebase初期化
-const app = initializeApp(firebaseConfig)
-const storage = getStorage(app)
+const storage = getStorage(firebase.app)
 
 export const sharePhoto = {
   async upload(photoData) {
@@ -16,7 +13,7 @@ export const sharePhoto = {
 
       // ファイル名を生成（一意のIDを使用）
       const shareCode = nanoid(6)
-      const fileName = `photos/${shareCode}.jpg`
+      const fileName = `shared/${shareCode}.jpg`
 
       // Storageの参照を作成
       const storageRef = ref(storage, fileName)
@@ -31,13 +28,13 @@ export const sharePhoto = {
       }
 
       // アップロード実行
-      console.log("Uploading photo with metadata:", metadata)
+      console.log("写真をアップロード中...", metadata)
       const snapshot = await uploadBytes(storageRef, blob, metadata)
-      console.log("Uploaded photo:", snapshot)
+      console.log("アップロード完了:", snapshot)
 
       // ダウンロードURLを取得
       const url = await getDownloadURL(snapshot.ref)
-      console.log("Download URL:", url)
+      console.log("ダウンロードURL:", url)
 
       return {
         success: true,
@@ -45,7 +42,7 @@ export const sharePhoto = {
         url,
       }
     } catch (error) {
-      console.error("Upload error:", error)
+      console.error("アップロードエラー:", error)
       return {
         success: false,
         error: error.message,

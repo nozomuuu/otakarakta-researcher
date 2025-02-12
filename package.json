@@ -1,35 +1,35 @@
 {
   "name": "otakarakuta-researcher",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "firebase": "^11.3.0",
+    "@material-ui/core": "^5.0.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "firebase": "^9.22.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0",
-    "react-scripts": "5.0.1"
-  },
-  "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@babel/plugin-transform-private-property-in-object": "^7.23.4"
+    "react-router-dom": "^6.11.2",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "CI=false GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "vercel-build": "npm install --legacy-peer-deps && npm run build",
-    "get-latest-deployment": "bash -c 'vercel ls --json | grep -m 1 \"url\" | cut -d\\\" -f4'",
-    "view-logs": "bash -c 'DEPLOYMENT_URL=$(npm run --silent get-latest-deployment) && if [ ! -z \"$DEPLOYMENT_URL\" ]; then vercel logs \"$DEPLOYMENT_URL\"; else echo \"Error: No deployment URL found\"; exit 1; fi'",
-    "deploy-and-logs": "vercel --prod && sleep 10 && npm run view-logs"
+    "vercel-build": "npm install --legacy-peer-deps && npm run build"
+  },
+  "eslintConfig": {
+    "extends": ["react-app", "react-app/jest"],
+    "rules": {
+      "no-useless-concat": "off"
+    }
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
     "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
   }
 }
 

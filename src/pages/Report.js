@@ -12,12 +12,10 @@ const Report = () => {
   const [error, setError] = useState(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [bestShotIndex, setBestShotIndex] = useState(null)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(true)
   const [shareCode, setShareCode] = useState(null)
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
-  const [shareError, setShareError] = useState(null)
   const navigate = useNavigate()
   const location = useLocation()
   const mounted = useRef(true)
@@ -105,7 +103,6 @@ const Report = () => {
 
     try {
       setIsSharing(true)
-      setShareError(null)
 
       // 進捗表示を追加
       const progressDiv = document.createElement("div")
@@ -127,7 +124,7 @@ const Report = () => {
     } catch (error) {
       console.error("Share failed:", error)
       if (mounted.current) {
-        setShareError(error.message)
+        setError(error.message)
       }
     } finally {
       if (mounted.current) {
