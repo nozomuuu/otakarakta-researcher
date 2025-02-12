@@ -19,9 +19,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "vercel-build": "npm install --legacy-peer-deps && npm run build",
-    "get-latest-deployment": "vercel ls -l 1 | awk 'NR==2 {print $2}'",
-    "view-logs": "vercel logs $(npm run --silent get-latest-deployment)",
-    "deploy-and-logs": "vercel --prod && npm run view-logs"
+    "get-latest-deployment": "vercel ls | sed -n '2p' | awk '{print $2}'",
+    "view-logs": "bash -c 'vercel logs $(npm run --silent get-latest-deployment)'",
+    "deploy-and-logs": "vercel --prod && sleep 5 && npm run view-logs"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
@@ -32,4 +32,3 @@
     "npm": ">=9.0.0"
   }
 }
-
